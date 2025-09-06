@@ -36,6 +36,7 @@ This repository is a minimal, production-minded Next.js skeleton focused on SSR,
 - Required variables:
   - `SITE_URL`: absolute base URL for the site, used by Next metadata (`metadataBase`). Example: `https://myapp.com`
 - The env loader in `src/lib/env.ts` validates and normalizes values on startup.
+  - In the hybrid layout, import from `src/shared/config` via `@shared/config`.
 
 ### SSR News Page
 
@@ -140,3 +141,106 @@ These guidelines codify best practices for scalability, maintainability, and tea
 #### When to add API Routes
 
 - Add `app/api/*` route handlers when the UI needs a stable backend contract, data aggregation, or security boundaries. Keep handlers thin and reuse `lib/` utilities.
+
+### Project Organization Options
+
+Choose the approach that best fits your team and growth plans. Consistency matters more than specific folder names.
+
+#### Feature‑First (recommended for scaling)
+
+- Organize by domain (e.g., `news`, `photos`). Each feature owns its API client, types, components, and tests.
+- Pages stay thin and import from features.
+- Example:
+  - `src/features/news/{api,components,types,index.ts}`
+  - `src/features/photos/{api,components,types,index.ts}`
+- Benefits: Clear ownership, SOLID by default (SRP, dependency direction), easier refactors.
+
+In this repo (mapping/examples):
+- Photos feature candidates: `src/lib/photos.ts`, `src/types/photo.ts`, and UI rendering in `src/app/photos/page.tsx`
+- News feature candidates: `src/lib/hn.ts` and UI rendering in `src/app/news/page.tsx`
+- How it would look: move those into `src/features/photos/{api,types}` and `src/features/news/{api}`; export via `src/features/*/index.ts`
+
+#### Layered (good for small apps)
+
+- Organize by type (e.g., `components`, `lib`, `types`).
+- Simple to start; can tangle as features multiply.
+- Use when scope is small or short‑lived.
+
+In this repo (current examples):
+- Components: `src/components/{Container.tsx,Header.tsx,FeatureCard.tsx,AppLink.tsx}`
+- Libraries/clients: `src/lib/{http.ts,hn.ts,photos.ts}`
+- Types: `src/types/photo.ts`
+- Routes: `src/app/{page.tsx,news/page.tsx,photos/page.tsx}`
+
+#### Hybrid (common in practice)
+
+- Feature‑first for product code plus a small shared layer for cross‑cutting utilities and UI.
+- Shared examples:
+  - `src/shared/http/*` for fetch helpers
+  - `src/shared/ui/*` for reusable components (e.g., `AppLink`)
+  - `src/shared/config/*` for env loaders and config
+
+In this repo (hybrid in practice):
+- Shared UI: `src/shared/ui/{AppLink.tsx,Container.tsx,Header.tsx}` used across pages
+- Shared HTTP: `src/shared/http/http.ts` consumed by features
+- Shared config: `src/shared/config/env.server.ts` used by `src/app/layout.tsx`
+- Features: `src/features/news/api/hn.ts`, `src/features/photos/{api/photos.ts,types.ts}`
+
+#### Naming Conventions
+
+- Domain folders: `features`, `modules`, or `domains` — pick one.
+- Shared layer: `shared`, `common`, or `core` — subdivide into `ui`, `http`, `config`, etc.
+- Route groups: Use App Router groups like `app/(public)`, `(admin)`, `(marketing)` to segment layouts/UX.
+
+#### Path Aliases (tsconfig.json)
+
+- Add aliases for clarity and to enforce direction:
+  - `@features/*` → `src/features/*`
+  - `@shared/*` → `src/shared/*`
+  - Keep `@/*` → `src/*` during migrations
+
+#### Guardrails & Tips
+
+- Keep pages thin: orchestrate data/rendering and delegate to features.
+- Public surface: Each feature exposes a small `index.ts`; avoid importing its internals.
+- Direction: Features can import from `@shared/*`, not from other features.
+- Tests: Colocate `*.test.ts[x]` with the code they cover.
+- Env: Server‑only env loader lives in shared/config; client‑safe vars use `NEXT_PUBLIC_*`.
+- Document your choice here and stick to it for consistency.
+
+#### Barrels (Public APIs)
+
+- Each feature exposes a small, intentional surface via an `index.ts` barrel.
+- Shared layers can also provide barrels for common imports.
+- In this repo:
+  - Features: `src/features/news/index.ts`, `src/features/photos/index.ts`
+  - Shared: `src/shared/ui/index.ts`, `src/shared/http/index.ts`
+  - Usage examples: `import { getTopStories } from '@features/news'`, `import { Container, Header } from '@shared/ui'`
+
+### CI
+
+- GitHub Actions workflow runs `lint`, `typecheck`, and `test` on pushes/PRs.
+- See `.github/workflows/ci.yml`. It sets `SITE_URL` during CI to keep checks stable.
+
+### Real-World Examples
+
+Feature‑first / Hybrid reference repos (web services):
+- Bulletproof React (feature-first reference): https://github.com/alan2207/bulletproof-react
+  - Look for: domain folders, shared layer, testing conventions.
+- Vercel Commerce (large Next.js app): https://github.com/vercel/commerce
+  - Look for: domain-oriented modules, shared utilities, incremental feature structure.
+- Cal.com (large, modular Next.js monorepo): https://github.com/calcom/cal.com
+  - Look for: feature modules, shared UI packages, env/config conventions.
+- Dub.co (Next.js monorepo SaaS): https://github.com/dubinc/dub
+  - Look for: app router usage, modular packages, product-driven domains.
+- Medusa Next.js Starter (storefront): https://github.com/medusajs/nextjs-starter-medusa
+  - Look for: feature folders for commerce flows and shared components.
+- Saleor React Storefront (Next.js): https://github.com/saleor/react-storefront
+  - Look for: domain separation (cart, checkout, catalog) and shared utils.
+
+Key Next.js docs
+- Route Groups: https://nextjs.org/docs/app/building-your-application/routing/route-groups
+- Parallel Routes / Layouts: https://nextjs.org/docs/app/building-your-application/routing/parallel-routes
+- Data Fetching: https://nextjs.org/docs/app/building-your-application/data-fetching/fetching
+- Metadata: https://nextjs.org/docs/app/building-your-application/optimizing/metadata
+- Environment Variables: https://nextjs.org/docs/app/building-your-application/configuring/environment-variables

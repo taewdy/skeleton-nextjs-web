@@ -1,4 +1,4 @@
-import { HttpError, getJson } from './http';
+import { HttpError, getJson } from '@shared/http';
 
 // These tests use a tiny in-memory fetch mock to validate behavior.
 // They do not hit the network.

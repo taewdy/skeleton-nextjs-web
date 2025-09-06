@@ -25,9 +25,9 @@
     "types": ["jest", "node"],
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"],
+      "@features/*": ["src/features/*"],
+      "@shared/*": ["src/shared/*"]
     },
     "noEmit": true,
     "isolatedModules": true

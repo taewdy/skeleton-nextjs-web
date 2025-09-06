@@ -39,4 +39,3 @@ export function AppLink(props: AppLinkProps) {
     </Link>
   );
 }
-

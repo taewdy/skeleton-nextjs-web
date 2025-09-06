@@ -1,10 +1,8 @@
 import Image from 'next/image';
 import { Suspense } from 'react';
 
-import { Container } from '@/components/Container';
-import { Header } from '@/components/Header';
-import { getPhotos } from '@/lib/photos';
-import type { Photo } from '@/types/photo';
+import { Container, Header } from '@shared/ui';
+import { getPhotos, type Photo } from '@features/photos';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300;

@@ -2,6 +2,9 @@ type Env = {
   SITE_URL: string;
 };
 
+const NODE_ENV = process.env.NODE_ENV ?? 'development';
+const DEFAULT_DEV_SITE_URL = 'http://localhost:3000';
+
 function requireString(name: keyof Env, value: string | undefined): string {
   if (!value || !value.trim()) {
     throw new Error(`Missing required environment variable: ${name}`);
@@ -22,10 +25,21 @@ function assertAbsoluteHttpUrl(name: keyof Env, value: string): string {
 }
 
 function loadEnv(): Env {
-  const SITE_URL = assertAbsoluteHttpUrl(
-    'SITE_URL',
-    requireString('SITE_URL', process.env.SITE_URL)
-  );
+  let siteUrlRaw = process.env.SITE_URL?.trim();
+
+  if (!siteUrlRaw) {
+    if (NODE_ENV === 'production') {
+      throw new Error('Missing required environment variable: SITE_URL');
+    }
+    // Provide a sensible default during local development and tests
+    siteUrlRaw = DEFAULT_DEV_SITE_URL;
+    if (NODE_ENV !== 'test') {
+      // eslint-disable-next-line no-console
+      console.warn(`SITE_URL not set; defaulting to ${DEFAULT_DEV_SITE_URL} for ${NODE_ENV}.`);
+    }
+  }
+
+  const SITE_URL = assertAbsoluteHttpUrl('SITE_URL', siteUrlRaw);
   return { SITE_URL };
 }
 
@@ -36,4 +50,3 @@ export const env: Env = (() => {
   cached = loadEnv();
   return cached;
 })();
-
