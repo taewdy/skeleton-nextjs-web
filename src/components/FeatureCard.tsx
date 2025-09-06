@@ -7,6 +7,18 @@ type FeatureCardProps = {
 }
 
 export function FeatureCard({ title, children, link }: FeatureCardProps) {
+  const renderLink = (
+    l: Omit<AppLinkProps, 'children'> & { label: string }
+  ) => {
+    const { label, ...rest } = l;
+    if (l.kind === 'external') {
+      const props = rest as Extract<AppLinkProps, { kind: 'external' }>;
+      return <AppLink {...props}>→ {label}</AppLink>;
+    }
+    const props = rest as Extract<AppLinkProps, { kind: 'internal' }>;
+    return <AppLink {...props}>→ {label}</AppLink>;
+  };
+
   return (
     <div className="card">
       <h3>{title}</h3>
@@ -14,10 +26,7 @@ export function FeatureCard({ title, children, link }: FeatureCardProps) {
       {link && (
         <>
           <div style={{ height: 8 }} />
-          {(() => {
-            const { label, ...linkProps } = link;
-            return <AppLink {...(linkProps as any)}>→ {label}</AppLink>;
-          })()}
+          {renderLink(link)}
         </>
       )}
     </div>

@@ -5,13 +5,6 @@ type Env = {
 const NODE_ENV = process.env.NODE_ENV ?? 'development';
 const DEFAULT_DEV_SITE_URL = 'http://localhost:3000';
 
-function requireString(name: keyof Env, value: string | undefined): string {
-  if (!value || !value.trim()) {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-  return value.trim();
-}
-
 function assertAbsoluteHttpUrl(name: keyof Env, value: string): string {
   try {
     const url = new URL(value);

@@ -19,7 +19,7 @@ describe('FeatureCard', () => {
   it('renders the internal link when provided', () => {
     const linkProps = {
       kind: 'internal' as const,
-      href: '/test-page',
+      href: '/photos',
       label: 'Test Link',
       ariaLabel: 'Navigate to test page',
     }
@@ -32,7 +32,7 @@ describe('FeatureCard', () => {
 
     const link = screen.getByRole('link', { name: /navigate to test page/i })
     expect(link).toBeInTheDocument()
-    expect(link).toHaveAttribute('href', '/test-page')
+    expect(link).toHaveAttribute('href', '/photos')
   })
 
   it('renders an external link with security attrs', () => {

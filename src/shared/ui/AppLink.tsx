@@ -1,40 +1,47 @@
 import Link from 'next/link';
+import type { Route } from 'next';
 import type { AnchorHTMLAttributes, PropsWithChildren } from 'react';
 
-type BaseProps = PropsWithChildren<{
+type CommonProps = PropsWithChildren<{
   className?: string;
   ariaLabel?: string;
-}> & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'children' | 'className' | 'aria-label'>;
+}>;
 
-type InternalLink = BaseProps & {
+type AnchorRest = Omit<
+  AnchorHTMLAttributes<HTMLAnchorElement>,
+  'href' | 'children' | 'className' | 'aria-label'
+>;
+
+export type InternalLinkProps = CommonProps & AnchorRest & {
   kind: 'internal';
-  href: string; // Flexible; typed routes enforced at call sites when using next/link directly
+  href: Route;
 };
 
-type ExternalLink = BaseProps & {
+export type ExternalLinkProps = CommonProps & AnchorRest & {
   kind: 'external';
   href: string;
   target?: '_blank' | '_self' | '_parent' | '_top';
   rel?: string;
 };
 
-export type AppLinkProps = InternalLink | ExternalLink;
+export type AppLinkProps = InternalLinkProps | ExternalLinkProps;
 
-export function AppLink(props: AppLinkProps) {
-  const { children, className, ariaLabel, href, ...rest } = props as any;
-
+export function AppLink(props: ExternalLinkProps): JSX.Element;
+export function AppLink(props: InternalLinkProps): JSX.Element;
+export function AppLink(props: AppLinkProps): JSX.Element {
   if (props.kind === 'external') {
-    const target = props.target ?? '_blank';
-    const rel = props.rel ?? 'noreferrer noopener';
+    const { children, className, ariaLabel, href, target = '_blank', rel, ...rest } = props;
+    const safeRel = rel ?? 'noreferrer noopener';
     return (
-      <a href={href} className={className} aria-label={ariaLabel} target={target} rel={rel} {...rest}>
+      <a href={href} className={className} aria-label={ariaLabel} target={target} rel={safeRel} {...rest}>
         {children}
       </a>
     );
   }
 
+  const { children, className, ariaLabel, href, ...rest } = props;
   return (
-    <Link href={href as any} className={className} aria-label={ariaLabel} {...(rest as any)}>
+    <Link href={href} className={className} aria-label={ariaLabel} {...rest}>
       {children}
     </Link>
   );
