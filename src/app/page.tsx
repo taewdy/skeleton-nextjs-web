@@ -19,6 +19,7 @@ export default function HomePage() {
           <FeatureCard
             title="News (SSR)"
             link={{
+              kind: 'internal',
               href: '/news',
               label: 'View Top Stories',
               ariaLabel: 'Hacker News (SSR)',
@@ -42,6 +43,7 @@ export default function HomePage() {
           <FeatureCard
             title="Photos (SSR)"
             link={{
+              kind: 'internal',
               href: '/photos',
               label: 'View Photos',
               ariaLabel: 'JSONPlaceholder Photos (SSR)',

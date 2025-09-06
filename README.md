@@ -30,6 +30,13 @@ This repository is a minimal, production-minded Next.js skeleton focused on SSR,
 5. Tests:
    - `npm test`
 
+### Environment
+
+- Copy `.env.example` to `.env.local` and set values for your environment.
+- Required variables:
+  - `SITE_URL`: absolute base URL for the site, used by Next metadata (`metadataBase`). Example: `https://myapp.com`
+- The env loader in `src/lib/env.ts` validates and normalizes values on startup.
+
 ### SSR News Page
 
 Visit `/news` to see a server-rendered list of Hacker News Top Stories. The page fetches at request time (`dynamic = 'force-dynamic'`) and applies a 5-minute soft revalidate window for production ISR.
@@ -90,6 +97,7 @@ These guidelines codify best practices for scalability, maintainability, and tea
 - Error boundaries: `app/error.tsx` renders within layout (no `<html>` wrapper). For full-document fallbacks, use `global-error.tsx`.
 - Routing: Use `next/link` for internal nav. Typed routes are encouraged at call sites; reusable components may accept `string` for flexibility.
 - Images: Configure `images.remotePatterns` in `next.config.mjs` for remote sources.
+- Metadata: `metadataBase` derives from `SITE_URL` via `src/lib/env.ts`.
 
 #### Testing
 
@@ -121,7 +129,7 @@ These guidelines codify best practices for scalability, maintainability, and tea
 
 - Input validation: Treat query params and external API data as untrusted; validate and narrow types.
 - Secrets: Never commit secrets. Provide `.env.example` and read on the server only.
-- Links: Use `rel="noreferrer"` for external links opened with `target="_blank"`.
+- Links: Use `rel="noreferrer"` for external links opened with `target="_blank"`. Prefer the shared `AppLink` component.
 
 #### CI/CD & Hygiene
 

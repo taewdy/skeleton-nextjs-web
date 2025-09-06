@@ -1,13 +1,9 @@
-import Link from 'next/link'
+import { AppLink, type AppLinkProps } from '@/components/AppLink'
 
 type FeatureCardProps = {
   title: string
   children: React.ReactNode
-  link?: {
-    href: string
-    label: string
-    ariaLabel: string
-  }
+  link?: Omit<AppLinkProps, 'children'> & { label: string }
 }
 
 export function FeatureCard({ title, children, link }: FeatureCardProps) {
@@ -18,9 +14,10 @@ export function FeatureCard({ title, children, link }: FeatureCardProps) {
       {link && (
         <>
           <div style={{ height: 8 }} />
-          <Link href={link.href as any} aria-label={link.ariaLabel}>
-            → {link.label}
-          </Link>
+          {(() => {
+            const { label, ...linkProps } = link;
+            return <AppLink {...(linkProps as any)}>→ {label}</AppLink>;
+          })()}
         </>
       )}
     </div>

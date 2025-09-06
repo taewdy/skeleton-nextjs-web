@@ -26,3 +26,12 @@ it('throws HttpError on non-ok response', async () => {
 
   await expect(getJson('https://example.com')).rejects.toBeInstanceOf(HttpError);
 });
+
+it('throws HttpError with status 0 on network error', async () => {
+  const mockNetworkFail: typeof fetch = (async () => {
+    throw new Error('network down');
+  }) as any;
+  global.fetch = mockNetworkFail;
+
+  await expect(getJson('https://example.com')).rejects.toMatchObject({ status: 0 });
+});

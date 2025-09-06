@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { env } from '@/lib/env';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
     default: 'Next.js Skeleton',
   },
   description: 'A clean, SSR-first Next.js skeleton with TypeScript.',
-  metadataBase: new URL('https://example.com')
+  metadataBase: new URL(env.SITE_URL)
 };
 
 export const viewport: Viewport = {
@@ -29,4 +30,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
