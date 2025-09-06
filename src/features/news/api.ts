@@ -1,4 +1,4 @@
-import { getJson } from '@/lib/http';
+import { getJson } from '@shared/http';
 
 type StoryId = number;
 
@@ -33,4 +33,3 @@ export async function getTopStories(limit = 10): Promise<HnItem[]> {
   const items = await Promise.all(ids.map((id) => getItem(id)));
   return items.filter(Boolean);
 }
-

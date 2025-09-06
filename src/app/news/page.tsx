@@ -1,9 +1,8 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 
-import { Container } from '@/components/Container';
-import { Header } from '@/components/Header';
-import { getTopStories } from '@/lib/hn';
+import { Container, Header } from '@shared/ui';
+import { getTopStories } from '@features/news';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // soft cache for 5 minutes (ISR when deployed)

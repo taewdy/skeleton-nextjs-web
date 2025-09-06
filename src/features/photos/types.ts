@@ -5,4 +5,3 @@ export type Photo = {
   url: string;
   thumbnailUrl: string;
 };
-

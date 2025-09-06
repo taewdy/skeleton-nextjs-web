@@ -1,5 +1,5 @@
-import { getJson } from '@/lib/http';
-import type { Photo } from '@/types/photo';
+import { getJson } from '@shared/http';
+import type { Photo } from './types';
 
 const BASE = 'https://jsonplaceholder.typicode.com';
 
@@ -19,4 +19,3 @@ export async function getPhotos(params: GetPhotosParams = {}): Promise<Photo[]> 
     next: { revalidate: 300, tags: ['photos'] },
   });
 }
-

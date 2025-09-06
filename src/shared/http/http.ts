@@ -13,15 +13,22 @@ type FetchOptions = Omit<RequestInit, 'body' | 'method'> & {
 };
 
 export async function getJson<T>(url: string, options: FetchOptions = {}): Promise<T> {
-  const res = await fetch(url, {
-    // Request-time SSR by default; caller can override for ISR/SSG
-    cache: options.cache ?? 'no-store',
-    next: options.next,
-    headers: {
-      'accept': 'application/json',
-      ...options.headers,
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      // Request-time SSR by default; caller can override for ISR/SSG
+      cache: options.cache ?? 'no-store',
+      next: options.next,
+      headers: {
+        accept: 'application/json',
+        ...options.headers,
+      },
+    });
+  } catch (err) {
+    // Normalize network/abort errors into HttpError for consistent handling
+    const message = err instanceof Error ? err.message : 'Network error';
+    throw new HttpError(message, 0);
+  }
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
@@ -31,4 +38,3 @@ export async function getJson<T>(url: string, options: FetchOptions = {}): Promi
   // Narrow-only parse to T; caller supplies the type contract
   return (await res.json()) as T;
 }
-
