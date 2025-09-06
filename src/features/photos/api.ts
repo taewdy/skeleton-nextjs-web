@@ -1,5 +1,5 @@
 import { getJson } from '@shared/http';
-import type { Photo } from '@/features/photos/types';
+import type { Photo } from './types';
 
 const BASE = 'https://jsonplaceholder.typicode.com';
 

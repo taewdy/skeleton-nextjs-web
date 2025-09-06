@@ -184,13 +184,23 @@ In this repo (hybrid in practice):
 - Shared UI: `src/shared/ui/{AppLink.tsx,Container.tsx,Header.tsx}` used across pages
 - Shared HTTP: `src/shared/http/http.ts` consumed by features
 - Shared config: `src/shared/config/env.server.ts` used by `src/app/layout.tsx`
-- Features: `src/features/news/api/hn.ts`, `src/features/photos/{api/photos.ts,types.ts}`
+- Features (flat): `src/features/news/api.ts`, `src/features/photos/{api.ts,types.ts}`
 
 #### Naming Conventions
 
 - Domain folders: `features`, `modules`, or `domains` — pick one.
 - Shared layer: `shared`, `common`, or `core` — subdivide into `ui`, `http`, `config`, etc.
 - Route groups: Use App Router groups like `app/(public)`, `(admin)`, `(marketing)` to segment layouts/UX.
+
+#### Flat vs Nested Features
+
+- Start flat inside each feature for simplicity: keep `api.ts`, `types.ts`, and `index.ts` at the feature root.
+- Add subfolders only when complexity demands it:
+  - `components/` when a feature accumulates multiple view components
+  - `services/` or `api/` when you have multiple clients/endpoints
+  - `utils/` for meaningful intra‑feature reuse
+- Keep a barrel (`index.ts`) at the feature root so consumers don’t depend on internal file paths.
+- In this repo: features are flat — see `src/features/news/client.ts` and `src/features/photos/{client.ts,types.ts}`.
 
 #### Path Aliases (tsconfig.json)
 
