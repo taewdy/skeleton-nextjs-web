@@ -1,19 +1,42 @@
 # Dependencies
-node_modules
+node_modules/
 
 # Next.js
-.next
-out
+.next/
+out/
+.swc/
+.standalone/
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
+*.log
 
-# Env
-.env*
+# Local Environment Variables
+# Exclude all .env files and their variants except for the template.
+.env.*.local
+.env.local
+.env
+!/.env.example
+!/.env.template
 
 # Misc
 .DS_Store
 
+# TypeScript build info
+tsconfig.tsbuildinfo
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Standalone Next.js server
+.standalone/
