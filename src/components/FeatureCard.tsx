@@ -18,7 +18,7 @@ export function FeatureCard({ title, children, link }: FeatureCardProps) {
       {link && (
         <>
           <div style={{ height: 8 }} />
-          <Link href={link.href} aria-label={link.ariaLabel}>
+          <Link href={link.href as any} aria-label={link.ariaLabel}>
             → {link.label}
           </Link>
         </>
