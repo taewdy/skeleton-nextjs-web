@@ -1,6 +1,4 @@
-import { Container } from '@shared/ui';
-import { FeatureCard } from '@/components/FeatureCard';
-import { Header } from '@shared/ui';
+import { Container, FeatureCard, Header } from '@shared/ui';
 
 export default function HomePage() {
   return (

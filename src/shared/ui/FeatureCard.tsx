@@ -1,4 +1,4 @@
-import { AppLink, type AppLinkProps } from '@shared/ui'
+import { AppLink, type AppLinkProps } from './AppLink'
 
 type FeatureCardProps = {
   title: string
