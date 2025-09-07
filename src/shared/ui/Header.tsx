@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
-export function Header() {
+export function Header({ className }: { className?: string }) {
   return (
-    <header className="container header">
+    <header className={["container header", className].filter(Boolean).join(" ")}> 
       <Link href="/" className="brand" aria-label="Home">
         <span className="brand-badge" />
         <span>Next.js Skeleton</span>

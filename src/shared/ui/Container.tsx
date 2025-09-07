@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
 
-export function Container({ children }: PropsWithChildren) {
-  return <div className="container">{children}</div>;
+export function Container({ children, className }: PropsWithChildren<{ className?: string }>) {
+  return <div className={["container", className].filter(Boolean).join(" ")}>{children}</div>;
 }

@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --fg: 12 12 13;
   --bg: 250 250 250;
@@ -88,4 +92,3 @@ a { color: inherit; text-decoration: none; }
 .card p { margin: 0; }
 
 .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-

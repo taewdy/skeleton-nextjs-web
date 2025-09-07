@@ -227,6 +227,24 @@ In this repo (hybrid in practice):
   - Shared: `src/shared/ui/index.ts`, `src/shared/http/index.ts`
   - Usage examples: `import { getTopStories } from '@features/news'`, `import { Container, Header } from '@shared/ui'`
 
+### Styling Options
+
+- Framework‑agnostic components: Shared UI accepts `className` to layer any CSS approach.
+  - `Container`, `Header`, `FeatureCard`, and `AppLink` all support `className`.
+- Works with:
+  - Utility CSS (Tailwind): add classes at call sites or compose via wrappers.
+  - CSS Modules: import module classes and pass via `className`.
+  - Vanilla/global CSS: extend `app/globals.css` selectors (e.g., `.container`, `.header`, `.card`).
+  - CSS‑in‑JS (e.g., styled‑components, Emotion): wrap shared components or pass generated classNames.
+- Tailwind quickstart:
+  - Repo includes `tailwind.config.js` and `postcss.config.js` and injects Tailwind directives into `src/app/globals.css`.
+  - Install dependencies: `npm i -D tailwindcss postcss autoprefixer`
+  - Use: `<Container className="mx-auto max-w-3xl p-4">…</Container>`
+- Guidance:
+  - Keep semantic HTML; avoid framework‑specific attributes in shared components.
+  - Prefer passing styles from call sites over hard‑coding layout in components.
+  - If adopting a component library (Chakra, MUI), create thin wrappers under `src/shared/ui` to contain vendor specifics.
+
 ### CI
 
 - GitHub Actions workflow runs `lint`, `typecheck`, and `test` on pushes/PRs.

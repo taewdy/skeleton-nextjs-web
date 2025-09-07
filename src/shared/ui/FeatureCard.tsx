@@ -1,12 +1,13 @@
 import { AppLink, type AppLinkProps } from './AppLink'
 
 type FeatureCardProps = {
-  title: string
-  children: React.ReactNode
-  link?: Omit<AppLinkProps, 'children'> & { label: string }
-}
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+  link?: Omit<AppLinkProps, 'children'> & { label: string };
+};
 
-export function FeatureCard({ title, children, link }: FeatureCardProps) {
+export function FeatureCard({ title, children, className, link }: FeatureCardProps) {
   const renderLink = (
     l: Omit<AppLinkProps, 'children'> & { label: string }
   ) => {
@@ -20,7 +21,7 @@ export function FeatureCard({ title, children, link }: FeatureCardProps) {
   };
 
   return (
-    <div className="card">
+    <div className={["card", className].filter(Boolean).join(" ")}> 
       <h3>{title}</h3>
       <p>{children}</p>
       {link && (
