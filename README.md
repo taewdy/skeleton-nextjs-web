@@ -10,6 +10,15 @@ This repository is a minimal, production-minded Next.js skeleton focused on SSR,
 - SSR News page: Hacker News Top Stories with caching and error handling
 - SSR Photos page: JSONPlaceholder photos with album filtering
 
+### Documentation (Product Buildout)
+
+- Architecture: `docs/architecture-design.md`
+- Tasks: `docs/task-01-backend-auth-threads-oauth.md` … `docs/task-10-observability-security-deploy.md`
+- Progress: `docs/progress-tracker.md`
+- UI: `docs/ui-design.md`
+- API: `docs/API_DOCS.md`
+- Deployment: `docs/DEPLOYMENT.md`
+
 ### Project Structure
 
 - `src/app`: App Router routes, `layout.tsx`, global error, styles
