@@ -105,18 +105,148 @@ Base URL: `/api/v1`
 All endpoints documented in OpenAPI; schemas versioned; breaking changes via new routes or versions.
 
 ## Database Schema (Relational Outline)
-- `users(id, email, created_at, status)`
-- `thread_accounts(id, user_id FK, external_id, handle, access_token_encrypted, refresh_token_hash, expires_at)`
-- `profiles(id, user_id FK, display_name, bio, age, location, preferences_json)`
-- `posts(id, thread_account_id FK, external_id, content, created_at, metadata_json)`
-- `interactions(id, src_account_id FK, dst_account_id FK, post_id FK, type, created_at)`
-- `analysis_results(id, interaction_id FK, sentiment_score, toxicity_score, interests_json, model_meta_json)`
-- `scores(id, src_user_id FK, dst_user_id FK, score, decay_applied_at, weight_meta_json)`
-- `matches(id, user_a_id FK, user_b_id FK, created_at, status)`
-- `likes(id, liker_user_id FK, likee_user_id FK, created_at)`
-- `messages(id, match_id FK, sender_user_id FK, content, created_at)`
-- `audit_logs(id, actor_user_id FK, action, target_type, target_id, meta_json, created_at)`
-Indexes on foreign keys, time, and frequently queried combinations.
+
+Note: We align table and column names with the Threads API fields provided in `docs/reference/threads_postman_collection.json`. To keep intent explicit, we name content tables with a `threads_` prefix.
+
+- `users(
+    id uuid PK,
+    email text UNIQUE NULL,
+    status text NOT NULL DEFAULT 'active', -- enum: active|banned|deleted
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`
+
+- `thread_accounts(
+    id uuid PK,
+    user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    threads_user_id text NOT NULL UNIQUE,      -- Threads "id"
+    username text NOT NULL,                   -- Threads "username"
+    name text NULL,                           -- Threads "name"
+    profile_picture_url text NULL,            -- Threads "threads_profile_picture_url"
+    biography text NULL,                      -- Threads "threads_biography"
+    is_verified boolean NOT NULL DEFAULT false,
+    access_token_encrypted text NOT NULL,     -- app user access token, encrypted
+    refresh_token_hash text NULL,             -- if applicable
+    token_expires_at timestamptz NULL,
+    permissions_json jsonb NULL,              -- provider scopes/config
+    last_synced_at timestamptz NULL,
+    status text NOT NULL DEFAULT 'active',    -- enum: active|revoked
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`
+
+- `profiles(
+    id uuid PK,
+    user_id uuid NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    display_name text NULL,
+    bio text NULL,
+    age int NULL,
+    location text NULL,
+    preferences_json jsonb NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`
+
+- `threads_posts(
+    id uuid PK,
+    thread_account_id uuid NOT NULL REFERENCES thread_accounts(id) ON DELETE CASCADE,
+    threads_media_id text NOT NULL UNIQUE,    -- Threads media "id"
+    media_product_type text NULL,             -- e.g., 'THREADS'
+    media_type text NULL,                     -- e.g., 'TEXT', 'IMAGE', 'VIDEO'
+    text text NULL,                           -- post caption/body
+    media_url text NULL,                      -- media_url
+    thumbnail_url text NULL,                  -- thumbnail_url
+    permalink text NULL,                      -- permalink
+    username text NULL,                       -- denormalized for convenience
+    timestamp timestamptz NULL,               -- provider timestamp
+    shortcode text NULL,                      -- shortcode
+    has_replies boolean NULL,
+    is_reply boolean NULL,
+    is_reply_owned_by_me boolean NULL,
+    is_quote_post boolean NULL,
+    alt_text text NULL,
+    link_attachment_url text NULL,
+    reply_audience text NULL,
+    topic_tag text NULL,
+    hide_status text NULL,                    -- e.g., hidden/visible
+    root_media_id text NULL,                  -- Threads root_post.id
+    replied_to_media_id text NULL,            -- Threads replied_to.id
+    quoted_post_media_id text NULL,           -- quoted_post.id
+    reposted_post_media_id text NULL,         -- reposted_post.id
+    gif_url text NULL,
+    poll_attachment_json jsonb NULL,          -- poll_attachment
+    children_media_ids text[] NULL,           -- children ids (if carousel/thread chain)
+    raw_json jsonb NULL,                      -- full provider payload for audit/debug
+    ingested_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`
+
+- `interactions(
+    id uuid PK,
+    src_account_id uuid NOT NULL REFERENCES thread_accounts(id) ON DELETE CASCADE,
+    dst_account_id uuid NULL REFERENCES thread_accounts(id) ON DELETE SET NULL,
+    post_id uuid NULL REFERENCES threads_posts(id) ON DELETE SET NULL,
+    type text NOT NULL,                       -- mention|reply|repost|quote|like (if available)
+    created_at timestamptz NOT NULL,
+    recorded_at timestamptz NOT NULL DEFAULT now()
+  )`
+
+- `analysis_results(
+    id uuid PK,
+    interaction_id uuid NOT NULL REFERENCES interactions(id) ON DELETE CASCADE,
+    sentiment_score numeric NULL,
+    toxicity_score numeric NULL,
+    interests_json jsonb NULL,
+    model_meta_json jsonb NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+  )`
+
+- `scores(
+    id uuid PK,
+    src_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    dst_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    score numeric NOT NULL,
+    decay_applied_at timestamptz NULL,
+    weight_meta_json jsonb NULL,
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (src_user_id, dst_user_id)
+  )`
+
+- `matches(
+    id uuid PK,
+    user_a_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_b_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status text NOT NULL DEFAULT 'active',    -- active|closed
+    created_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (LEAST(user_a_id, user_b_id), GREATEST(user_a_id, user_b_id))
+  )`
+
+- `likes(
+    id uuid PK,
+    liker_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    likee_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at timestamptz NOT NULL DEFAULT now()
+  )`
+
+- `messages(
+    id uuid PK,
+    match_id uuid NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+    sender_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+  )`
+
+- `audit_logs(
+    id uuid PK,
+    actor_user_id uuid NULL REFERENCES users(id) ON DELETE SET NULL,
+    action text NOT NULL,
+    target_type text NOT NULL,
+    target_id text NULL,
+    meta_json jsonb NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+  )`
+
+Indexes on foreign keys, provider IDs (`threads_user_id`, `threads_media_id`), and time-based queries. Consider GIN indexes for JSONB fields used in filters.
 
 ## Scoring Model (Initial)
 - Inputs: sentiment on replies/mentions, frequency, recency (exponential decay), toxicity penalty, interest overlap
@@ -160,4 +290,3 @@ Adhere to SRP and localize feature concerns; prefer hooks and small, pure compon
 - Progress tracker `docs/progress-tracker.md`
 - UI design `docs/ui-design.md`
 - Minimal code scaffolding for planned features
-
