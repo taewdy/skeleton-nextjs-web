@@ -2,6 +2,169 @@
 
 The following diagrams visualize key flows and the overall architecture based on the design in `docs/02-design/architecture-design.md`.
 
+## ERD (Entity Relationship Diagram)
+
+```mermaid
+erDiagram
+    users {
+        uuid id PK
+        text email
+        text status
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    thread_accounts {
+        uuid id PK
+        uuid user_id FK
+        text threads_user_id
+        text username
+        text name
+        text profile_picture_url
+        text biography
+        boolean is_verified
+        text access_token_encrypted
+        text refresh_token_hash
+        timestamptz token_expires_at
+        jsonb permissions_json
+        timestamptz last_synced_at
+        text status
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    profiles {
+        uuid id PK
+        uuid user_id FK
+        text display_name
+        text bio
+        int age
+        text location
+        jsonb preferences_json
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    syncs {
+        uuid id PK
+        uuid thread_account_id FK
+        text status
+        timestamptz started_at
+        timestamptz completed_at
+        jsonb meta_json
+    }
+    threads_posts {
+        uuid id PK
+        uuid thread_account_id FK
+        uuid sync_id FK
+        text threads_media_id
+        text media_product_type
+        text media_type
+        text text
+        text media_url
+        text thumbnail_url
+        text permalink
+        text username
+        timestamptz timestamp
+        text shortcode
+        boolean has_replies
+        boolean is_reply
+        boolean is_reply_owned_by_me
+        boolean is_quote_post
+        text alt_text
+        text link_attachment_url
+        text reply_audience
+        text topic_tag
+        text hide_status
+        text root_media_id
+        text replied_to_media_id
+        text quoted_post_media_id
+        text reposted_post_media_id
+        text gif_url
+        jsonb poll_attachment_json
+        text[] children_media_ids
+        jsonb raw_json
+        timestamptz ingested_at
+        timestamptz updated_at
+    }
+    interactions {
+        uuid id PK
+        uuid sync_id FK
+        uuid src_account_id FK
+        uuid dst_account_id FK
+        uuid post_id FK
+        text type
+        timestamptz created_at
+        timestamptz recorded_at
+    }
+    analysis_results {
+        uuid id PK
+        uuid interaction_id FK
+        numeric sentiment_score
+        numeric toxicity_score
+        jsonb interests_json
+        jsonb model_meta_json
+        timestamptz created_at
+    }
+    scores {
+        uuid id PK
+        uuid src_user_id FK
+        uuid dst_user_id FK
+        numeric score
+        timestamptz decay_applied_at
+        jsonb weight_meta_json
+        timestamptz updated_at
+    }
+    matches {
+        uuid id PK
+        uuid user_a_id FK
+        uuid user_b_id FK
+        text status
+        timestamptz created_at
+    }
+    likes {
+        uuid id PK
+        uuid liker_user_id FK
+        uuid likee_user_id FK
+        timestamptz created_at
+    }
+    messages {
+        uuid id PK
+        uuid match_id FK
+        uuid sender_user_id FK
+        text content
+        timestamptz created_at
+    }
+    audit_logs {
+        uuid id PK
+        uuid actor_user_id FK
+        text action
+        text target_type
+        text target_id
+        jsonb meta_json
+        timestamptz created_at
+    }
+
+    users ||--o{ thread_accounts : "has"
+    users ||--o{ profiles : "has"
+    users ||--o{ scores : "scores"
+    users ||--o{ matches : "matches"
+    users ||--o{ likes : "likes"
+    users ||--o{ messages : "sends"
+    users ||--o{ audit_logs : "performs"
+
+    thread_accounts ||--o{ syncs : "has"
+    thread_accounts ||--o{ threads_posts : "has"
+    thread_accounts ||--o{ interactions : "source"
+    thread_accounts ||--o{ interactions : "destination"
+
+    syncs ||--o{ threads_posts : "includes"
+    syncs ||--o{ interactions : "includes"
+
+    threads_posts ||--o{ interactions : "has"
+
+    interactions ||--o{ analysis_results : "has"
+
+    matches ||--o{ messages : "has"
+```
+
 ## Architecture Overview
 
 ```mermaid

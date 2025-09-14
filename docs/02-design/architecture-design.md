@@ -147,9 +147,19 @@ Note: We align table and column names with the Threads API fields provided in `d
     updated_at timestamptz NOT NULL DEFAULT now()
   )`
 
+- `syncs(
+    id uuid PK,
+    thread_account_id uuid NOT NULL REFERENCES thread_accounts(id) ON DELETE CASCADE,
+    status text NOT NULL, -- enum: running|completed|failed
+    started_at timestamptz NOT NULL DEFAULT now(),
+    completed_at timestamptz NULL,
+    meta_json jsonb NULL
+  )`
+
 - `threads_posts(
     id uuid PK,
     thread_account_id uuid NOT NULL REFERENCES thread_accounts(id) ON DELETE CASCADE,
+    sync_id uuid NULL REFERENCES syncs(id) ON DELETE SET NULL,
     threads_media_id text NOT NULL UNIQUE,    -- Threads media "id"
     media_product_type text NULL,             -- e.g., 'THREADS'
     media_type text NULL,                     -- e.g., 'TEXT', 'IMAGE', 'VIDEO'
@@ -183,6 +193,7 @@ Note: We align table and column names with the Threads API fields provided in `d
 
 - `interactions(
     id uuid PK,
+    sync_id uuid NULL REFERENCES syncs(id) ON DELETE SET NULL,
     src_account_id uuid NOT NULL REFERENCES thread_accounts(id) ON DELETE CASCADE,
     dst_account_id uuid NULL REFERENCES thread_accounts(id) ON DELETE SET NULL,
     post_id uuid NULL REFERENCES threads_posts(id) ON DELETE SET NULL,
