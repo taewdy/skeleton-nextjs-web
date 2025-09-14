@@ -71,7 +71,7 @@ erDiagram
         timestamptz created_at_threads
         timestamptz created_at
         timestamptz updated_at
-        double precision engagement_score
+        DOUBLE_PRECISION engagement_score
         text permalink
         VARCHAR_255 shortcode
     }

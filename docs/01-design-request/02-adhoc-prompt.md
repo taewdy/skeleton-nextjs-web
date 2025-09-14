@@ -87,7 +87,7 @@ Output: docs/02-design/diagrams.md
     shortcode             varchar(255)
 );
 
-  ```
+``
 
 - combine user and profile together but separate thread_accounts table which is from threads api
 - things like (3, 2) can't be parsed by mermaid viewer, we should be using format like NUMERIC_3_2, that includes all the parenthesis
