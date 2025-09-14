@@ -88,3 +88,15 @@ Output: docs/02-design/diagrams.md
 );
 
   ```
+
+- combine user and profile together but separate thread_accounts table which is from threads api
+- things like (3, 2) can't be parsed by mermaid viewer, we should be using format like NUMERIC_3_2, that includes all the parenthesis
+
+## we want to test data and api
+in order to start implement, I want to test the data and api first
+
+thus, I'd like to just call api to start
+1. sync
+2. analyze all the posts using AI
+
+but to sync we need, token, which only can be otainbed from oauth process, right? we can't automate that only from backend, right?

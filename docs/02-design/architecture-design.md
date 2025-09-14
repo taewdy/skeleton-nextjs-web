@@ -112,6 +112,11 @@ Note: We align table and column names with the Threads API fields provided in `d
     id uuid PK,
     email text UNIQUE NULL,
     status text NOT NULL DEFAULT 'active', -- enum: active|banned|deleted
+    display_name text NULL,
+    bio text NULL,
+    age int NULL,
+    location text NULL,
+    preferences_json jsonb NULL,
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   )`
@@ -135,18 +140,6 @@ Note: We align table and column names with the Threads API fields provided in `d
     updated_at timestamptz NOT NULL DEFAULT now()
   )`
 
-- `profiles(
-    id uuid PK,
-    user_id uuid NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    display_name text NULL,
-    bio text NULL,
-    age int NULL,
-    location text NULL,
-    preferences_json jsonb NULL,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
-  )`
-
 - `syncs(
     id uuid PK,
     thread_account_id uuid NOT NULL REFERENCES thread_accounts(id) ON DELETE CASCADE,
@@ -156,60 +149,36 @@ Note: We align table and column names with the Threads API fields provided in `d
     meta_json jsonb NULL
   )`
 
-- `threads_posts(
-    id uuid PK,
-    thread_account_id uuid NOT NULL REFERENCES thread_accounts(id) ON DELETE CASCADE,
-    sync_id uuid NULL REFERENCES syncs(id) ON DELETE SET NULL,
-    threads_media_id text NOT NULL UNIQUE,    -- Threads media "id"
-    media_product_type text NULL,             -- e.g., 'THREADS'
-    media_type text NULL,                     -- e.g., 'TEXT', 'IMAGE', 'VIDEO'
-    text text NULL,                           -- post caption/body
-    media_url text NULL,                      -- media_url
-    thumbnail_url text NULL,                  -- thumbnail_url
-    permalink text NULL,                      -- permalink
-    username text NULL,                       -- denormalized for convenience
-    timestamp timestamptz NULL,               -- provider timestamp
-    shortcode text NULL,                      -- shortcode
-    has_replies boolean NULL,
-    is_reply boolean NULL,
-    is_reply_owned_by_me boolean NULL,
-    is_quote_post boolean NULL,
-    alt_text text NULL,
-    link_attachment_url text NULL,
-    reply_audience text NULL,
-    topic_tag text NULL,
-    hide_status text NULL,                    -- e.g., hidden/visible
-    root_media_id text NULL,                  -- Threads root_post.id
-    replied_to_media_id text NULL,            -- Threads replied_to.id
-    quoted_post_media_id text NULL,           -- quoted_post.id
-    reposted_post_media_id text NULL,         -- reposted_post.id
-    gif_url text NULL,
-    poll_attachment_json jsonb NULL,          -- poll_attachment
-    children_media_ids text[] NULL,           -- children ids (if carousel/thread chain)
-    raw_json jsonb NULL,                      -- full provider payload for audit/debug
-    ingested_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
-  )`
-
-- `interactions(
-    id uuid PK,
-    sync_id uuid NULL REFERENCES syncs(id) ON DELETE SET NULL,
-    src_account_id uuid NOT NULL REFERENCES thread_accounts(id) ON DELETE CASCADE,
-    dst_account_id uuid NULL REFERENCES thread_accounts(id) ON DELETE SET NULL,
-    post_id uuid NULL REFERENCES threads_posts(id) ON DELETE SET NULL,
-    type text NOT NULL,                       -- mention|reply|repost|quote|like (if available)
-    created_at timestamptz NOT NULL,
-    recorded_at timestamptz NOT NULL DEFAULT now()
-  )`
-
-- `analysis_results(
-    id uuid PK,
-    interaction_id uuid NOT NULL REFERENCES interactions(id) ON DELETE CASCADE,
-    sentiment_score numeric NULL,
-    toxicity_score numeric NULL,
-    interests_json jsonb NULL,
-    model_meta_json jsonb NULL,
-    created_at timestamptz NOT NULL DEFAULT now()
+- `threads_content(
+    id serial PK,
+    sync_id uuid NOT NULL REFERENCES syncs(id) ON DELETE CASCADE,
+    media_id varchar(255) NOT NULL UNIQUE,
+    media_product_type varchar(50) NOT NULL,
+    from_user_id varchar(255),
+    from_username varchar(255) NOT NULL,
+    to_user_id varchar(255),
+    to_username varchar(255),
+    text text,
+    hide_status varchar(50) DEFAULT 'NOT_HUSHED',
+    type varchar(20) NOT NULL,
+    root_post_id varchar(255),
+    replied_to_id varchar(255),
+    is_reply_owned_by_me boolean DEFAULT false,
+    sentiment varchar(20),
+    affection_level integer,
+    emotional_tone jsonb,
+    toxicity numeric(3, 2),
+    flirtatiousness numeric(3, 2),
+    sentiment_analyzed_at timestamptz,
+    sentiment_version varchar(20),
+    is_positive boolean,
+    metadata jsonb,
+    created_at_threads timestamptz NOT NULL,
+    created_at timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    engagement_score double precision,
+    permalink text,
+    shortcode varchar(255)
   )`
 
 - `scores(

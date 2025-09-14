@@ -10,6 +10,11 @@ erDiagram
         uuid id PK
         text email
         text status
+        text display_name
+        text bio
+        int age
+        text location
+        jsonb preferences_json
         timestamptz created_at
         timestamptz updated_at
     }
@@ -31,17 +36,6 @@ erDiagram
         timestamptz created_at
         timestamptz updated_at
     }
-    profiles {
-        uuid id PK
-        uuid user_id FK
-        text display_name
-        text bio
-        int age
-        text location
-        jsonb preferences_json
-        timestamptz created_at
-        timestamptz updated_at
-    }
     syncs {
         uuid id PK
         uuid thread_account_id FK
@@ -50,58 +44,36 @@ erDiagram
         timestamptz completed_at
         jsonb meta_json
     }
-    threads_posts {
-        uuid id PK
-        uuid thread_account_id FK
+    threads_content {
+        serial id PK
         uuid sync_id FK
-        text threads_media_id
-        text media_product_type
-        text media_type
+        VARCHAR_255 media_id
+        VARCHAR_50 media_product_type
+        VARCHAR_255 from_user_id
+        VARCHAR_255 from_username
+        VARCHAR_255 to_user_id
+        VARCHAR_255 to_username
         text text
-        text media_url
-        text thumbnail_url
-        text permalink
-        text username
-        timestamptz timestamp
-        text shortcode
-        boolean has_replies
-        boolean is_reply
+        VARCHAR_50 hide_status
+        VARCHAR_20 type
+        VARCHAR_255 root_post_id
+        VARCHAR_255 replied_to_id
         boolean is_reply_owned_by_me
-        boolean is_quote_post
-        text alt_text
-        text link_attachment_url
-        text reply_audience
-        text topic_tag
-        text hide_status
-        text root_media_id
-        text replied_to_media_id
-        text quoted_post_media_id
-        text reposted_post_media_id
-        text gif_url
-        jsonb poll_attachment_json
-        text[] children_media_ids
-        jsonb raw_json
-        timestamptz ingested_at
+        VARCHAR_20 sentiment
+        integer affection_level
+        jsonb emotional_tone
+        NUMERIC_3_2 toxicity
+        NUMERIC_3_2 flirtatiousness
+        timestamptz sentiment_analyzed_at
+        VARCHAR_20 sentiment_version
+        boolean is_positive
+        jsonb metadata
+        timestamptz created_at_threads
+        timestamptz created_at
         timestamptz updated_at
-    }
-    interactions {
-        uuid id PK
-        uuid sync_id FK
-        uuid src_account_id FK
-        uuid dst_account_id FK
-        uuid post_id FK
-        text type
-        timestamptz created_at
-        timestamptz recorded_at
-    }
-    analysis_results {
-        uuid id PK
-        uuid interaction_id FK
-        numeric sentiment_score
-        numeric toxicity_score
-        jsonb interests_json
-        jsonb model_meta_json
-        timestamptz created_at
+        double precision engagement_score
+        text permalink
+        VARCHAR_255 shortcode
     }
     scores {
         uuid id PK
@@ -143,7 +115,6 @@ erDiagram
     }
 
     users ||--o{ thread_accounts : "has"
-    users ||--o{ profiles : "has"
     users ||--o{ scores : "scores"
     users ||--o{ matches : "matches"
     users ||--o{ likes : "likes"
@@ -151,19 +122,26 @@ erDiagram
     users ||--o{ audit_logs : "performs"
 
     thread_accounts ||--o{ syncs : "has"
-    thread_accounts ||--o{ threads_posts : "has"
-    thread_accounts ||--o{ interactions : "source"
-    thread_accounts ||--o{ interactions : "destination"
+    
+    syncs ||--o{ threads_content : "includes"
 
-    syncs ||--o{ threads_posts : "includes"
-    syncs ||--o{ interactions : "includes"
-
-    threads_posts ||--o{ interactions : "has"
-
-    interactions ||--o{ analysis_results : "has"
-
-    matches ||--o{ messages : "has"
+    scores ||--o{ users : "scored by"
+    matches ||--o{ users : "matched with"
+    likes ||--o{ users : "liked by"
 ```
+
+Type legend for ERD (diagram-safe tokens → PostgreSQL types):
+- `UUID` → `uuid`
+- `TEXT` → `text`
+- `JSONB` → `jsonb`
+- `BOOLEAN` → `boolean`
+- `INTEGER` → `integer`
+- `TIMESTAMPTZ` → `timestamptz`
+- `DOUBLE_PRECISION` → `double precision`
+- `VARCHAR_20` → `varchar(20)`
+- `VARCHAR_50` → `varchar(50)`
+- `VARCHAR_255` → `varchar(255)`
+- `NUMERIC_3_2` → `numeric(3, 2)`
 
 ## Architecture Overview
 
