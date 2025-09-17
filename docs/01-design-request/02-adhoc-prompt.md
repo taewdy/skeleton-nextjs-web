@@ -91,6 +91,15 @@ Output: docs/02-design/diagrams.md
 
 - combine user and profile together but separate thread_accounts table which is from threads api
 - things like (3, 2) can't be parsed by mermaid viewer, we should be using format like NUMERIC_3_2, that includes all the parenthesis
+- I understand we have short-live token and long-live token. confirm it by checking `docs/reference/threads` and add the field to the thread_accounts table
+- Because I want to use long-lived token confirm if we have designed the process to get long-lived token and refresh it when it expires. Update @architecture-design.md and @diagrams.md
+- confirm if we can just refresh it in background without user interaction more in terms of user's decision, shouldn't we let user know when the token is expired and let them re-authenticate? add the findings to the docs/02-design/architecture-design.md and docs/02-design/diagrams.md
+
+## regarding object storage
+- we will be using supabase storage for media files, e.g. user can upload their pictures upto 5 picts, and confirm if need DB to store the file path or url
+
+## regarding sentiment analysis
+- we might want to store the sentiment analysis result separately in another table, to be flexible for future changes, 1-1 relation with posts table, and also we might have monthly analysis for the post over one month.
 
 ## we want to test data and api
 in order to start implement, I want to test the data and api first
@@ -99,4 +108,5 @@ thus, I'd like to just call api to start
 1. sync
 2. analyze all the posts using AI
 
-but to sync we need, token, which only can be otainbed from oauth process, right? we can't automate that only from backend, right?
+but to sync we need token, which only can be otainbed from oauth process, right? we can't automate that only from backend, right?
+I'd like to use long-live token, so we need to get that from oauth process first, then we can use that to call api

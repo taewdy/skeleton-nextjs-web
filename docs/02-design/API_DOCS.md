@@ -40,6 +40,7 @@ GET /auth/threads/callback
 - Query: `code`, `state`
 - Response (XHR): `{ ok: true }`
 - Browser: may 302 redirect to app (e.g., `/profile`)
+- Notes: Server exchanges the short-lived token for a long-lived token and persists it. No client action is required.
 
 POST /auth/refresh
 - Description: Rotates access token using refresh token cookie
@@ -52,6 +53,9 @@ POST /auth/logout
 - Auth: required
 - Request: none
 - Response: `204 No Content`
+
+Background refresh (internal)
+- Description: The backend schedules refresh of long-lived provider tokens before expiry. No public endpoint is required; an admin-only endpoint may be added for manual retries if needed.
 
 GET /auth/csrf (optional)
 - Description: Issues CSRF token for double‑submit strategy
@@ -184,4 +188,3 @@ POST /admin/users/:id/ban
 ## Notes
 - OpenAPI spec generation recommended from code; this file describes the contract for planning. Keep in sync with the generated spec.
 - See Threads OAuth reference collection: `docs/reference/threads_postman_collection.json`
-

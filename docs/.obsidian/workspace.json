@@ -14,7 +14,7 @@
               "type": "markdown",
               "state": {
                 "file": "02-design/diagrams.md",
-                "mode": "source",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
@@ -169,8 +169,9 @@
       "bases:Create new base": false
     }
   },
-  "active": "fc0d4e023b3865d2",
+  "active": "3bb248373ec22ecd",
   "lastOpenFiles": [
+    "02-design/task-11-backend-media-uploads.md",
     "02-design/diagrams.md",
     "01-design-request/02-adhoc-prompt.md",
     "02-design/architecture-design.md"

@@ -19,7 +19,7 @@ Build a modern dating web application that leverages Threads as a social graph a
   - Primary DB: PostgreSQL Supabase (hosted)
     - Entities: users, profiles, thread_accounts, posts, interactions, analysis_results, scores, matches, messages, audit_logs
   - Caching/Queues: We won't use Cache or Queues for the MVP, but Redis is a good option for future scalability
-  - Object Storage: Use Supabase Storage // confirm if this is feasible for storing any media/assets
+  - Object Storage: Supabase Storage (confirmed) for user-uploaded media (e.g., up to 5 profile photos per user). Store canonical object paths in DB and generate signed URLs at read time for private buckets.
 
 - AI/Analysis Layer
   - Provider-agnostic interface for LLM and embeddings (OpenAI-compatible API)
@@ -56,6 +56,15 @@ Build a modern dating web application that leverages Threads as a social graph a
 - Rate limiting + IP/device fingerprinting for abuse
 - Content moderation: toxicity filter before persistence/visibility
 
+## Threads Token Lifecycle
+- Short-lived vs long-lived: After OAuth callback returns a short-lived user access token (about 1 hour), the backend immediately exchanges it for a long-lived token (about 60 days) per Threads docs.
+- Persistence: Store encrypted token in `thread_accounts.access_token_encrypted` with metadata `access_token_type`, `token_issued_at`, `token_expires_at`, `last_refreshed_at`, and `permission_expires_at` (90 day grant window for public profiles).
+- Public vs private profiles: Public profiles allow the permission grant window to be extended on each successful refresh; private profiles do not. When a private profile grant expires, re-consent is required.
+- Refresh strategy: A scheduled job scans for tokens nearing expiry and proactively refreshes long-lived tokens (for example, when `token_expires_at - now() <= 7 days`). On refresh, update `last_refreshed_at`, `token_expires_at`, and extend `permission_expires_at` when applicable.
+- Failure handling: If refresh fails (invalid or expired), mark account status `revoked`, pause ingestion, and surface a reconnect prompt; user must re-authenticate via OAuth.
+- UX and consent: Inform users during link that the app will refresh tokens to keep data in sync. Provide a Settings page to disconnect at any time and a non-intrusive banner to reconnect when access is revoked or the grant cannot be extended.
+- Auditing: Log token lifecycle events and minimal metadata; never log raw tokens.
+
 ## Performance & Scalability
 - Read patterns: profile and recommendations cached; incremental updates on events
 - Pagination and keyset queries; composite indexes for interactions
@@ -74,6 +83,7 @@ Base URL: `/api/v1`
 - Auth
   - `POST /auth/threads/start` → redirect URL
   - `GET /auth/threads/callback` → exchanges code, sets session
+    - Implementation: exchange authorization code → short-lived token; then exchange to long-lived token and persist into `thread_accounts`.
   - `POST /auth/refresh` → rotate tokens
   - `POST /auth/logout` → invalidate refresh token
 
@@ -131,8 +141,12 @@ Note: We align table and column names with the Threads API fields provided in `d
     biography text NULL,                      -- Threads "threads_biography"
     is_verified boolean NOT NULL DEFAULT false,
     access_token_encrypted text NOT NULL,     -- app user access token, encrypted
+    access_token_type text NOT NULL DEFAULT 'short', -- short | long (per Threads docs)
     refresh_token_hash text NULL,             -- if applicable
-    token_expires_at timestamptz NULL,
+    token_issued_at timestamptz NULL,         -- when current token was issued
+    last_refreshed_at timestamptz NULL,       -- last successful refresh of long-lived token
+    token_expires_at timestamptz NULL,        -- short=~1h, long=~60d
+    permission_expires_at timestamptz NULL,   -- permission grant window (e.g., 90 days)
     permissions_json jsonb NULL,              -- provider scopes/config
     last_synced_at timestamptz NULL,
     status text NOT NULL DEFAULT 'active',    -- enum: active|revoked
@@ -181,6 +195,35 @@ Note: We align table and column names with the Threads API fields provided in `d
     shortcode varchar(255)
   )`
 
+- `threads_content_analysis(
+    id uuid PK,
+    content_id uuid NOT NULL UNIQUE REFERENCES threads_content(id) ON DELETE CASCADE,
+    provider text NOT NULL DEFAULT 'openai-compatible',
+    version text NULL,                         -- model or pipeline version
+    sentiment_score numeric(3, 2) NULL,
+    toxicity_score numeric(3, 2) NULL,
+    interests_json jsonb NULL,
+    model_meta_json jsonb NULL,
+    analyzed_at timestamptz NOT NULL DEFAULT now()
+  )`
+
+- `threads_content_analysis_monthly(
+    id uuid PK,
+    content_id uuid NOT NULL REFERENCES threads_content(id) ON DELETE CASCADE,
+    year smallint NOT NULL,
+    month smallint NOT NULL,                   -- 1..12
+    sentiment_avg numeric(3, 2) NULL,
+    toxicity_avg numeric(3, 2) NULL,
+    sample_count int NOT NULL DEFAULT 0,
+    recomputed_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (content_id, year, month)
+  )`
+
+Notes on analysis storage:
+- The latest per-post analysis is kept 1:1 in `threads_content_analysis` for simple joins and fast reads.
+- Time-windowed rollups live in `threads_content_analysis_monthly` for historical/trend analysis without reprocessing raw content.
+- A worker job recomputes monthly rollups idempotently; store `version`/`model_meta_json` for auditability.
+
 - `scores(
     id uuid PK,
     src_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -215,6 +258,22 @@ Note: We align table and column names with the Threads API fields provided in `d
     content text NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now()
   )`
+
+- `profile_photos(
+    id uuid PK,
+    user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    bucket text NOT NULL DEFAULT 'profile-photos',
+    object_path text NOT NULL,                 -- e.g., user/<user_id>/<uuid>.jpg
+    is_primary boolean NOT NULL DEFAULT false,
+    sort_order int NOT NULL DEFAULT 0,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (user_id, object_path)
+  )`
+
+Notes on media storage:
+- Do NOT store signed URLs (they expire). Persist the bucket and object_path; derive public URL or generate signed URL on demand.
+- Enforce the “max 5 photos per user” rule in application logic (and optionally via a DB trigger).
+- On delete or user erasure, delete objects from storage and rows from `profile_photos`.
 
 - `audit_logs(
     id uuid PK,

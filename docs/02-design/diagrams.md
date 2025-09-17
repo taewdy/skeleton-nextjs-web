@@ -28,8 +28,12 @@ erDiagram
         text biography
         boolean is_verified
         text access_token_encrypted
+        text access_token_type
         text refresh_token_hash
+        timestamptz token_issued_at
+        timestamptz last_refreshed_at
         timestamptz token_expires_at
+        timestamptz permission_expires_at
         jsonb permissions_json
         timestamptz last_synced_at
         text status
@@ -75,6 +79,27 @@ erDiagram
         text permalink
         VARCHAR_255 shortcode
     }
+    threads_content_analysis {
+        uuid id PK
+        uuid content_id FK
+        text provider
+        text version
+        NUMERIC_3_2 sentiment_score
+        NUMERIC_3_2 toxicity_score
+        jsonb interests_json
+        jsonb model_meta_json
+        timestamptz analyzed_at
+    }
+    threads_content_analysis_monthly {
+        uuid id PK
+        uuid content_id FK
+        int year
+        int month
+        NUMERIC_3_2 sentiment_avg
+        NUMERIC_3_2 toxicity_avg
+        int sample_count
+        timestamptz recomputed_at
+    }
     scores {
         uuid id PK
         uuid src_user_id FK
@@ -113,17 +138,30 @@ erDiagram
         jsonb meta_json
         timestamptz created_at
     }
+    profile_photos {
+        uuid id PK
+        uuid user_id FK
+        text bucket
+        text object_path
+        boolean is_primary
+        int sort_order
+        timestamptz created_at
+    }
 
     users ||--o{ thread_accounts : "has"
     users ||--o{ scores : "scores"
     users ||--o{ matches : "matches"
     users ||--o{ likes : "likes"
     users ||--o{ messages : "sends"
+    users ||--o{ profile_photos : "has"
     users ||--o{ audit_logs : "performs"
 
     thread_accounts ||--o{ syncs : "has"
     
     syncs ||--o{ threads_content : "includes"
+
+    threads_content ||--|| threads_content_analysis : "has analysis"
+    threads_content ||--o{ threads_content_analysis_monthly : "monthly rollups"
 
     scores ||--o{ users : "scored by"
     matches ||--o{ users : "matched with"
@@ -216,6 +254,7 @@ sequenceDiagram
 Key points:
 - Short-lived access token with refresh cookie; httpOnly, SameSite, Secure.
 - `GET /me` confirms linkage and ingestion status post-login.
+- On callback, server exchanges short-lived token to long-lived token and persists lifecycle metadata.
 
 ## Data Ingestion from Threads
 
