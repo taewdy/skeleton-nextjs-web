@@ -20,7 +20,10 @@ Produce recommendations for whom a user should see based on one-way and mutual p
 ## Technical Specs
 - Configurable thresholds; diversity/novelty injection to avoid filter bubbles
 - Keyset pagination; dedupe and cooldown recently skipped items
+- Matching domain logic implemented in dedicated service classes invoked from FastAPI routes
+- Use SQLAlchemy queries and Postgres CTEs for ranking; keep logic testable
+- Cache hot recommendations with `redis.asyncio` client and structured keys per user
+- Requests/responses defined as Pydantic models for strict typing and validation
 
 ## User Stories
 - As a user, I see relevant recommendations and can like others
-

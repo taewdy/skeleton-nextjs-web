@@ -17,10 +17,10 @@ Define and implement core domain models for users, Threads accounts, and profile
 - Priority: P0
 
 ## Technical Specs
-- ORM: Prisma or TypeORM (recommend Prisma for DX)
-- Validation: class-validator/Zod
+- ORM: SQLAlchemy 2.0 with Alembic migrations
+- Validation and response serialization via Pydantic models shared with FastAPI routes
+- Repository/services layer keeps business logic isolated from HTTP handlers
 - Avoid over-fetching; select only required fields
 
 ## User Stories
 - As a user, I can see and edit my profile
-

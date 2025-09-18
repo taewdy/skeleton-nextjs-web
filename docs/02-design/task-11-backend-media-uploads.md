@@ -29,6 +29,10 @@ Add authenticated endpoints to upload, list, set primary, reorder, and delete us
 - Sort order: 0..4; validate unique per user; clamp to count-1 on deletes
 - Content-type allowlist: images only; size limit enforced via storage policy and server validation
 - Rate limit write endpoints
+- FastAPI router under `/media` issues signed URLs and commits uploads using dependency-injected services
+- Storage integration via Supabase REST API or `supabase-py` client with service role key stored server-side
+- Persist photo metadata with SQLAlchemy models inside the existing transaction/session scope
+- Responses validated through Pydantic schemas; ensure strict typing for sort order and flags
 
 ## API Sketch
 - `POST /media/profile-photos/upload-url`
@@ -49,4 +53,3 @@ Add authenticated endpoints to upload, list, set primary, reorder, and delete us
 - Ensure delete is idempotent if object missing in storage
 - Log storage operations (no secrets)
 - Consider background thumbnailing in future; for MVP serve original size or client-resized images
-

@@ -52,7 +52,7 @@ Build a modern dating web application that leverages Threads as a social graph a
 - Store refresh tokens hashed; JWT short TTL; CSRF protection via same-site cookies
 - RBAC (user, admin); route guards on admin APIs
 - PII minimization; purge policies; GDPR/right-to-erasure workflows
-- Input validation (runtime validation via Zod/class-validator); output schemas
+- Input validation: Zod on the frontend, Pydantic models on the FastAPI backend; output schemas kept in sync
 - Rate limiting + IP/device fingerprinting for abuse
 - Content moderation: toxicity filter before persistence/visibility
 
@@ -73,7 +73,7 @@ Build a modern dating web application that leverages Threads as a social graph a
 ## Development Standards
 - SOLID, KISS, DRY; composition over inheritance
 - Monorepo optional; keep frontend (this repo) separate from backend service repo
-- Linting/formatting: ESLint + Prettier; strict TS configs
+- Linting/formatting: ESLint + Prettier (frontend) and Ruff + Black + MyPy (backend)
 - Testing: unit-first; contract tests for APIs; smoke tests for workers
 - Git: trunk-based or GitFlow; conventional commits; PR checks with tests/lint
 

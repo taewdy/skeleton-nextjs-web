@@ -20,7 +20,9 @@ Analyze imported interactions with an OpenAI-compatible API to compute sentiment
 ## Technical Specs
 - Exponential decay on recency; weights per interaction type
 - Configurable via env/feature flags; audit logged
+- Expose endpoints via FastAPI router modules; wire services through `Depends`
+- Async provider adapters implemented with `httpx.AsyncClient`
+- Persist analysis artifacts with SQLAlchemy models; shape responses with Pydantic schemas shared across layers
 
 ## User Stories
 - As a user, my recommendations reflect positive interactions and avoid toxic ones
-

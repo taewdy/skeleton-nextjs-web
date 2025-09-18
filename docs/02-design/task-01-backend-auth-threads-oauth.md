@@ -18,12 +18,12 @@ Implement Threads OAuth flow on the backend. Exchange authorization codes for to
 - Priority: P0
 
 ## Technical Specs
-- Framework: NestJS (or Fastify) with DI
-- State/CSRF parameter validation; PKCE if supported
-- Store refresh tokens as hashes; rotate on use
-- Config via typed env schema; prod/staging environments
+- Framework: FastAPI with dependency-injected services via `Depends`
+- OAuth client: `authlib` + `httpx.AsyncClient`; enforce state/PKCE validation where supported
+- JWT/session issuance handled with `python-jose` (JWT) and secure, httpOnly refresh cookies
+- Store refresh tokens as hashes; rotate on use inside a transactional service layer
+- Configuration via `pydantic-settings`; keep parity between local, staging, and production env files
 
 ## User Stories
 - As a user, I can sign in with Threads
 - As a user, I can revoke my session securely
-
